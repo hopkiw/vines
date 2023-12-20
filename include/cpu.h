@@ -1,0 +1,139 @@
+#ifndef INCLUDE_CPU_H_
+#define INCLUDE_CPU_H_
+
+#include <cstdint>
+
+enum Flags {
+  C = 1,
+  Z = 2,
+  I = 4,
+  D = 8,
+  B = 16,
+  V = 32,
+  N = 64,
+};
+
+struct Registers {
+  // Accumulator
+  uint8_t A;
+
+  // Index registers
+  uint8_t X;
+  uint8_t Y;
+
+  // Program counter
+  uint16_t PC;
+  // Stack pointer
+  uint8_t S = 0xfd;
+  // Status register (only 6 bits used)
+  uint8_t P = 0x34;
+};
+
+// 16-bit addressable; 2kb present. little endian.
+// first 256kb page is 'zero page'
+// second page is system stack
+//
+// last 6 bytes of memory $FFFA to $FFFF must be programmed with the addresses
+// of the non-maskable interrupt handler ($FFFA/B), the power on reset location
+// ($FFFC/D) and the BRK/interrupt request handler ($FFFE/F) respectively.
+//
+// 22 memory-mapped registers for various purposes from $4000-$401f
+// $4020-$ffff is available to the game
+class Memory {
+ public:
+    Memory() {}
+
+    int write(int, int);
+    int read(int, int);
+
+ private:
+    char data[0xffff] {};
+};
+
+// 256x240 screen of 8x8 tiles for bg, 64 8x8 or 8x16 sprites
+// Emulator authors may wish to emulate the NTSC NES/Famicom CPU at 21441960 Hz
+// ((341×262−0.5)×4×60) to ensure a synchronised/stable 60 frames per second.
+struct PPU {
+};
+
+// 2 pulse channel, 1 triangle channel, 1 noise channel, 1 delta modulation
+// channel
+struct APU {
+};
+
+// 8-bit cpu on 6502 instruction set, emulating NES NTSC chip 2A03 at 1.79Mhz
+// no decimal mode
+class CPU {
+ public:
+    CPU();
+    explicit CPU(const Registers&);
+
+    void parse();
+
+    void op_adc();
+    void op_and();
+    void op_asl();
+    void op_bcc();
+    void op_bcs();
+    void op_beq();
+    void op_bit();
+    void op_bmi();
+    void op_bne();
+    void op_bpl();
+    void op_brk();
+    void op_bvc();
+    void op_bvs();
+    void op_clc();
+    void op_cld();
+    void op_cli();
+    void op_clv();
+    void op_cmp();
+    void op_cpx();
+    void op_cpy();
+    void op_dec();
+    void op_dex();
+    void op_dey();
+    void op_eor();
+    void op_inc();
+    void op_inx();
+    void op_iny();
+    void op_jmp();
+    void op_jsr();
+    void op_lda();
+    void op_ldx();
+    void op_ldy();
+    void op_lsr();
+    void op_nop();
+    void op_ora();
+    void op_pha();
+    void op_php();
+    void op_pla();
+    void op_plp();
+    void op_rol();
+    void op_ror();
+    void op_rti();
+    void op_rts();
+    void op_sbc();
+    void op_sec();
+    void op_sed();
+    void op_sei();
+    void op_sta();
+    void op_stx();
+    void op_sty();
+    void op_tax();
+    void op_tay();
+    void op_tsx();
+    void op_txa();
+    void op_txs();
+    void op_tya();
+
+    void test();
+
+ private:
+    Registers registers;
+    Memory memory;
+    PPU ppu;
+    APU apu;
+};
+
+#endif  // INCLUDE_CPU_H_
