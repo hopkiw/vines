@@ -1,6 +1,7 @@
 #ifndef INCLUDE_CPU_H_
 #define INCLUDE_CPU_H_
 
+#include <iostream>
 #include <cstdint>
 
 enum Flags {
@@ -13,23 +14,24 @@ enum Flags {
   N = 64,
 };
 
-struct Registers {
-  // Accumulator
-  uint8_t A = 0;
+class Registers {
+ public:
+    // Accumulator
+    uint8_t A = 0;
 
-  // Index registers
-  uint8_t X = 0;
-  uint8_t Y = 0;
+    // Index registers
+    uint8_t X = 0;
+    uint8_t Y = 0;
 
-  // Program counter
-  // TODO: initial PC value?
-  uint16_t PC;
+    // Program counter
+    // TODO: initial PC value?
+    uint16_t PC;
 
-  // Stack pointer
-  uint8_t S = 0xfd;
+    // Stack pointer
+    uint8_t S = 0xfd;
 
-  // Status register (only 6 bits used)
-  uint8_t P = 0x34;
+    // Status register (only 6 bits used)
+    uint8_t P = 0x34;
 };
 
 // 16-bit addressable; 2kb present. little endian.
@@ -70,6 +72,8 @@ class CPU {
  public:
     CPU();
     explicit CPU(const Registers&);
+
+    std::ostream& operator<<(std::ostream&);
 
     void parse();
 
