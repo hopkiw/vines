@@ -360,7 +360,68 @@ void CPU::decode(uint8_t byte) {
   }
 }
 
-void CPU::execute() {
+void CPU::op_adc(uint8_t) {
+}
+
+void CPU::op_and(uint8_t) {
+}
+
+
+void CPU::op_asl(uint8_t) {
+}
+
+void CPU::op_bcc() {
+}
+
+void CPU::op_bcs() {
+}
+
+void CPU::op_beq() {
+}
+
+void CPU::op_bit(uint8_t) {
+}
+
+void CPU::op_bmi() {
+}
+
+void CPU::op_bne() {
+}
+
+void CPU::op_bpl() {
+}
+
+void CPU::op_brk() {
+}
+
+void CPU::op_bvc() {
+}
+
+void CPU::op_bvs() {
+}
+
+void CPU::op_clc() {
+}
+
+void CPU::op_cld() {
+}
+
+void CPU::op_cli() {
+}
+
+void CPU::op_clv() {
+}
+
+void CPU::op_cmp(uint8_t) {
+}
+
+void CPU::op_cpx(uint8_t) {
+}
+
+void CPU::op_cpy(uint8_t) {
+}
+
+void CPU::op_dec(uint8_t) {
 }
 
 void CPU::op_dex() {
@@ -379,58 +440,22 @@ void CPU::op_dey() {
     registers.P |= Flags::N;
 }
 
-void CPU::op_tax() {
-  if (registers.A == 0)
-    registers.P |= Flags::Z;
-  else if (registers.A & 0x80)
-    registers.P |= Flags::N;
-
-  registers.X = registers.A;
+void CPU::op_eor(uint8_t) {
 }
 
-void CPU::op_tay() {
-  if (registers.A == 0)
-    registers.P |= Flags::Z;
-  else if (registers.A & 0x80)
-    registers.P |= Flags::N;
-
-  registers.Y = registers.A;
+void CPU::op_inc(uint8_t) {
 }
 
-void CPU::op_tsx() {
-  if (registers.S == 0)
-    registers.P |= Flags::Z;
-  else if (registers.S & 0x80)
-    registers.P |= Flags::N;
-
-  registers.X = registers.S;
+void CPU::op_inx() {
 }
 
-void CPU::op_txa() {
-  if (registers.X == 0)
-    registers.P |= Flags::Z;
-  else if (registers.X & 0x80)
-    registers.P |= Flags::N;
-
-  registers.A = registers.X;
+void CPU::op_iny() {
 }
 
-void CPU::op_txs() {
-  if (registers.X == 0)
-    registers.P |= Flags::Z;
-  else if (registers.X & 0x80)
-    registers.P |= Flags::N;
-
-  registers.S = registers.X;
+void CPU::op_jmp(uint8_t) {
 }
 
-void CPU::op_tya() {
-  if (registers.Y == 0)
-    registers.P |= Flags::Z;
-  else if (registers.Y & 0x80)
-    registers.P |= Flags::N;
-
-  registers.A = registers.Y;
+void CPU::op_jsr() {
 }
 
 void CPU::op_lda(uint8_t instruction) {
@@ -493,32 +518,190 @@ void CPU::op_lda(uint8_t instruction) {
   registers.A = val;
 }
 
-/*
-void CPU::op_ldx() {
+void CPU::op_ldx(uint8_t instruction) {
+  uint8_t val;
+  uint16_t addr;
+  switch (instruction) {
+    case 0xA2:
+      // immediate
+      val = memory.read(registers.PC++);
+      break;
+    case 0xA6:
+      // zp
+      addr = memory.read(registers.PC++);
+      val = memory.read(addr);
+      break;
+    case 0xB6:
+      // zp,y
+      addr = memory.read(registers.PC++) + registers.Y;
+      val = memory.read(addr);
+      break;
+    case 0xAE:
+      // abs
+      addr = memory.read(registers.PC++);
+      addr = addr & (memory.read(registers.PC++) << 8);
+      val = memory.read(addr);
+      break;
+    case 0xBE:
+      // abs,y
+      addr = memory.read(registers.PC++);
+      addr = addr & (memory.read(registers.PC++) << 8);
+      val = memory.read(addr + registers.Y);
+      break;
+  }
+
   if (val == 0)
     registers.P |= Flags::Z;
   else if (val & 0x80)
     registers.P |= Flags::N;
+
   registers.X = val;
 }
 
-void CPU::op_ldy() {
+void CPU::op_ldy(uint8_t instruction) {
+  uint8_t val;
+  uint16_t addr;
+  switch (instruction) {
+    case 0xA0:
+      // immediate
+      val = memory.read(registers.PC++);
+      break;
+    case 0xA4:
+      // zp
+      addr = memory.read(registers.PC++);
+      val = memory.read(addr);
+      break;
+    case 0xB4:
+      // zp,x
+      addr = memory.read(registers.PC++) + registers.X;
+      val = memory.read(addr);
+      break;
+    case 0xAC:
+      // abs
+      addr = memory.read(registers.PC++);
+      addr = addr & (memory.read(registers.PC++) << 8);
+      val = memory.read(addr);
+      break;
+    case 0xBC:
+      // abs,y
+      addr = memory.read(registers.PC++);
+      addr = addr & (memory.read(registers.PC++) << 8);
+      val = memory.read(addr + registers.X);
+      break;
+  }
+
   if (val == 0)
     registers.P |= Flags::Z;
   else if (val & 0x80)
     registers.P |= Flags::N;
+
   registers.Y = val;
 }
 
-void CPU::op_sta() {
-  memory.write(addr, registers.A);
+void CPU::op_lsr(uint8_t instruction) {
 }
 
-void CPU::op_stx() {
-  memory.write(addr, registers.X);
+void CPU::op_nop() {
 }
 
-void CPU::op_sty() {
-  memory.write(addr, registers.Y);
+void CPU::op_ora(uint8_t instruction) {
 }
-*/
+
+void CPU::op_pha() {
+}
+
+void CPU::op_php() {
+}
+
+void CPU::op_pla() {
+}
+
+void CPU::op_plp() {
+}
+
+void CPU::op_rol(uint8_t instruction) {
+}
+
+void CPU::op_ror(uint8_t instruction) {
+}
+
+void CPU::op_rti() {
+}
+
+void CPU::op_rts() {
+}
+
+void CPU::op_sbc(uint8_t instruction) {
+}
+
+void CPU::op_sec() {
+}
+
+void CPU::op_sed() {
+}
+
+void CPU::op_sei() {
+}
+
+void CPU::op_sta(uint8_t instruction) {
+}
+
+void CPU::op_stx(uint8_t instruction) {
+}
+
+void CPU::op_sty(uint8_t instruction) {
+}
+
+void CPU::op_tax() {
+  if (registers.A == 0)
+    registers.P |= Flags::Z;
+  else if (registers.A & 0x80)
+    registers.P |= Flags::N;
+
+  registers.X = registers.A;
+}
+
+void CPU::op_tay() {
+  if (registers.A == 0)
+    registers.P |= Flags::Z;
+  else if (registers.A & 0x80)
+    registers.P |= Flags::N;
+
+  registers.Y = registers.A;
+}
+
+void CPU::op_tsx() {
+  if (registers.S == 0)
+    registers.P |= Flags::Z;
+  else if (registers.S & 0x80)
+    registers.P |= Flags::N;
+
+  registers.X = registers.S;
+}
+
+void CPU::op_txa() {
+  if (registers.X == 0)
+    registers.P |= Flags::Z;
+  else if (registers.X & 0x80)
+    registers.P |= Flags::N;
+
+  registers.A = registers.X;
+}
+
+void CPU::op_txs() {
+  if (registers.X == 0)
+    registers.P |= Flags::Z;
+  else if (registers.X & 0x80)
+    registers.P |= Flags::N;
+
+  registers.S = registers.X;
+}
+
+void CPU::op_tya() {
+  if (registers.Y == 0)
+    registers.P |= Flags::Z;
+  else if (registers.Y & 0x80)
+    registers.P |= Flags::N;
+
+  registers.A = registers.Y;
+}

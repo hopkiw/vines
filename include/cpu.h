@@ -107,7 +107,7 @@ class CPU {
     void op_jmp(uint8_t);
     void op_jsr();
     void op_lda(uint8_t);
-    void op_ldx();
+    void op_ldx(uint8_t);
     void op_ldy(uint8_t);
     void op_lsr(uint8_t);
     void op_nop();
@@ -116,7 +116,7 @@ class CPU {
     void op_php();
     void op_pla();
     void op_plp();
-    void op_rol();
+    void op_rol(uint8_t);
     void op_ror(uint8_t);
     void op_rti();
     void op_rts();
@@ -124,7 +124,7 @@ class CPU {
     void op_sec();
     void op_sed();
     void op_sei();
-    void op_sta();
+    void op_sta(uint8_t);
     void op_stx(uint8_t);
     void op_sty(uint8_t);
     void op_tax();
