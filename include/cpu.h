@@ -15,16 +15,19 @@ enum Flags {
 
 struct Registers {
   // Accumulator
-  uint8_t A;
+  uint8_t A = 0;
 
   // Index registers
-  uint8_t X;
-  uint8_t Y;
+  uint8_t X = 0;
+  uint8_t Y = 0;
 
   // Program counter
+  // TODO: initial PC value?
   uint16_t PC;
+
   // Stack pointer
   uint8_t S = 0xfd;
+
   // Status register (only 6 bits used)
   uint8_t P = 0x34;
 };
@@ -43,11 +46,11 @@ class Memory {
  public:
     Memory() {}
 
-    int write(int, int);
-    int read(int, int);
+    void write(uint16_t, int8_t);
+    uint8_t read(uint16_t);
 
  private:
-    char data[0xffff] {};
+    uint8_t data[0xffff] {};
 };
 
 // 256x240 screen of 8x8 tiles for bg, 64 8x8 or 8x16 sprites
@@ -99,9 +102,9 @@ class CPU {
     void op_iny();
     void op_jmp();
     void op_jsr();
-    void op_lda();
-    void op_ldx();
-    void op_ldy();
+    void op_lda(uint8_t);
+    void op_ldx(uint8_t);
+    void op_ldy(uint8_t);
     void op_lsr();
     void op_nop();
     void op_ora();
@@ -117,9 +120,9 @@ class CPU {
     void op_sec();
     void op_sed();
     void op_sei();
-    void op_sta();
-    void op_stx();
-    void op_sty();
+    void op_sta(uint16_t);
+    void op_stx(uint16_t);
+    void op_sty(uint16_t);
     void op_tax();
     void op_tay();
     void op_tsx();
@@ -128,12 +131,16 @@ class CPU {
     void op_tya();
 
     void test();
+    void decode(uint8_t);
 
  private:
     Registers registers;
     Memory memory;
     PPU ppu;
     APU apu;
+
+    void fetch();
+    void execute();
 };
 
 #endif  // INCLUDE_CPU_H_
