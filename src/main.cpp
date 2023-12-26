@@ -1,22 +1,55 @@
+#include <stdexcept>
+#include <string.h>
+
+#include <ios>
+#include <iomanip>
 #include <iostream>
+#include <fstream>
 
 #include "./cpu.h"
 
 int main() {
-  CPU cpu(Registers{22, 32, 0});
-  std::cout << "Hello, world: " << &cpu << std::endl;
-
   /*
-  uint8_t opcodes[] {
-    0x05, 0x25, 0x45, 0x65, 0xe5, 0xc5, 0xe4, 0xc4, 0xc6, 0xe6, 0x06, 0x26,
-    0x46, 0x66, 0xa5, 0x85, 0xa6, 0x86, 0xa4, 0x84, 0x24
-  };
+  CPU cpu(Registers{22, 32, 0});
+  cpu.memory.write(0x4020, 0xA9);  // lda, imm
+  cpu.memory.write(0x4021, 0x0C);
+  cpu.memory.write(0x4022, 0x8D);  // sta, abs
+  cpu.memory.write(0x4023, 0xff);
+  cpu.memory.write(0x4024, 0x3f);
+  cpu.registers.PC = 0x4020;
   */
-  uint8_t opcodes[] {
-    0x09, 0x29, 0x49, 0x69, 0xe9, 0xc9, 0xe0, 0xc0, 0xa9, 0xa2, 0xa0
-  };
-  for (auto i : opcodes) {
-    cpu.decode(i);
+
+  std::ifstream fh;
+  fh.open("nestest.nes", std::fstream::binary);
+  if (fh.fail()) {
+    std::cout << "Error: nestest.nes: " << strerror(errno) << std::endl;
+    return 1;
   }
-  return 0;
+  fh.seekg(0x10);
+
+  CPU cpu(Registers{});
+  fh.read(reinterpret_cast<char*>(&cpu.cartridge.rom), 0x4000);
+
+  cpu.registers.PC = 0xc000;
+  int ret = 0, count = 0;
+  while (1) {
+    std::cout << cpu;
+
+    try {
+      cpu.execute();
+    }
+    catch (std::runtime_error& e) {
+      std::cout << "Error: " << e.what() << std::endl;
+      ret = 1;
+      break;
+    }
+    // std::cout << "CPU state: " << cpu << "\n" << std::endl;
+    count++;
+    std::cout << std::endl;
+  }
+
+  std::cout << "Ran " << std::dec << count << " instructions" << std::endl;
+  std::cout << "Memory 0x02" << (int)cpu.memory.read(02) << std::endl;
+  std::cout << "Memory 0x03" << (int)cpu.memory.read(03) << std::endl;
+  return ret;
 }

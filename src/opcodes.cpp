@@ -1,8 +1,5 @@
 #include "./cpu.h"
 
-void CPU::parse() {
-}
-
 /*
 
 Logical and arithmetic commands:
