@@ -1197,9 +1197,14 @@ void CPU::op_inc(uint8_t instruction) {
       addr = addr + registers.X;
       break;
   }
+  uint16_t val = read_mem(addr) + 1;
+  if (val > 0xff)
+    val = 0;
 
-  uint8_t val = read_mem(addr) + 1;
-  registers.P &= ~Flags::Z;  // ??
+  if (val == 0)
+    registers.P |= Flags::Z;
+  else
+    registers.P &= ~Flags::Z;  // ??
 
   if (val & 0x80)
     registers.P |= Flags::N;
@@ -1211,8 +1216,14 @@ void CPU::op_inc(uint8_t instruction) {
 
 void CPU::op_inx() {
   std::cout << "op_inx ";
-  uint8_t val = registers.X + 1;
-  registers.P &= ~Flags::Z;  // ??
+  uint16_t val = registers.X + 1;
+  if (val > 0xff)
+    val = 0;
+
+  if (val == 0)
+    registers.P |= Flags::Z;
+  else
+    registers.P &= ~Flags::Z;  // ??
 
   if (val & 0x80)
     registers.P |= Flags::N;
@@ -1224,8 +1235,14 @@ void CPU::op_inx() {
 
 void CPU::op_iny() {
   std::cout << "op_iny ";
-  uint8_t val = registers.Y + 1;
-  registers.P &= ~Flags::Z;  // ??
+  uint16_t val = registers.Y + 1;
+  if (val > 0xff)
+    val = 0;
+
+  if (val == 0)
+    registers.P |= Flags::Z;
+  else
+    registers.P &= ~Flags::Z;  // ??
 
   if (val & 0x80)
     registers.P |= Flags::N;
@@ -1256,7 +1273,7 @@ void CPU::op_jmp(uint8_t instruction) {
 void CPU::op_jsr() {
   std::cout << "op_jsr ";
   uint16_t retaddr;
-  retaddr = registers.PC + 2;
+  retaddr = registers.PC + 1;
   write_mem(0x100 + registers.S--, retaddr >> 8);
   write_mem(0x100 + registers.S--, retaddr & 0xff);
 
@@ -1699,7 +1716,7 @@ void CPU::op_rts() {
 
   pc = read_mem(0x100 + ++registers.S);
   pc = pc | (read_mem(0x100 + ++registers.S) << 8);
-  registers.PC = pc;
+  registers.PC = pc + 1;
 }
 
 void CPU::op_sbc(uint8_t instruction) {
@@ -1751,36 +1768,36 @@ void CPU::op_sbc(uint8_t instruction) {
       val = read_mem(addr);
       break;
   }
+  val = ~val;
+  uint16_t subtotal = registers.A + val;
+  if (registers.P & Flags::C)
+    subtotal++;
 
-  uint8_t carry = registers.P & Flags::C;
-  std::cout << "\n\ncarry " << (int)carry << std::endl;
-  int16_t subtotal = registers.A - (val + carry);
-  std::cout << "\n\nsubtotal " << (int16_t)subtotal << std::endl;
-
-  if (subtotal >= 0)
+  // Flags
+  if (subtotal > (subtotal & 0xff))
     registers.P |= Flags::C;
   else
     registers.P &= ~Flags::C;
 
-  if (subtotal > 127 || subtotal < -127)
-    registers.P |= Flags::V;
-  else
-    registers.P &= ~Flags::V;
-
-  if (subtotal & 0x80)
-    registers.P |= Flags::N;
-  else
-    registers.P &= ~Flags::N;
+  subtotal = subtotal & 0xff;
 
   if (subtotal == 0)
     registers.P |= Flags::Z;
   else
     registers.P &= ~Flags::Z;
 
-  val = subtotal;
-  std::cout << "\n\nsetting " << (int)val << std::endl;
+  if (subtotal & 0x80)
+    registers.P |= Flags::N;
+  else
+    registers.P &= ~Flags::N;
 
-  registers.A = val;
+  if (((registers.A & 0x80) == (val & 0x80)) &&
+      ((registers.A & 0x80) != (subtotal & 0x80)))
+    registers.P |= Flags::V;
+  else
+    registers.P &= ~Flags::V;
+
+  registers.A = subtotal;
 }
 
 void CPU::op_sec() {
@@ -1955,19 +1972,7 @@ void CPU::op_txa() {
 
 void CPU::op_txs() {
   std::cout << "op_txs ";
-  uint8_t val = registers.X;
-
-  if (val == 0)
-    registers.P |= Flags::Z;
-  else
-    registers.P &= ~Flags::Z;
-
-  if (val & 0x80)
-    registers.P |= Flags::N;
-  else
-    registers.P &= ~Flags::N;
-
-  registers.S = val;
+  registers.S = registers.X;
 }
 
 void CPU::op_tya() {
