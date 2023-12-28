@@ -37,42 +37,33 @@ std::ostream& operator<<(std::ostream& os, const CPU& cpu) {
 }
 
 void CPU::write_mem(uint16_t addr, uint8_t val) {
-  // printf("write 0x%02x to 0x%04x\n", val, addr);
   switch (addr) {
     case 0x2000 ... 0x3fff:
       addr = addr - 0x2000;
       switch (addr % 8) {
         case 0:
-          // PPUCTRL
           printf("PPUCTRL set %#04x", val);
           ppu.controller = val;
           break;
         case 1:
-          // PPUMASK
           printf("PPUMASK set %#04x", val);
           ppu.mask = val;
           break;
         case 2:
-          // PPUSTATUS
           printf("PPUSTATUS set ... not supposed to be%#04x", val);
           break;
         case 3:
-          // OAMADDR
           printf("OAMADDR set %#04x", val);
           ppu.oam_address = val;
           break;
         case 4:
-          // OAMDATA
           printf("OAMDATA set %#04x", val);
           break;
         case 5:
-          // PPUSCROLL
           printf("PPUSCROLL set %#04x", val);
           break;
         case 6:
-          // PPUADDR
           printf("PPUADDR set %#04x", val);
-          // TODO(liam): this belongs in ppu
           if (ppu.w) {
             ppu.address = ppu.address | (val << 8);
             ppu.w = 0;
@@ -82,13 +73,11 @@ void CPU::write_mem(uint16_t addr, uint8_t val) {
           }
           break;
         case 7:
-          // PPUDATA
           printf("PPUDATA set %#04x", val);
           break;
       }
       break;
     case 0x4014:
-      // OAMDMA
       printf("OAMDMA set to %#04x", val);
       break;
     case 0x1800 ... 0x1fff:
@@ -107,64 +96,48 @@ void CPU::write_mem(uint16_t addr, uint8_t val) {
 }
 
 uint8_t CPU::read_mem(uint16_t addr) {
-  // printf("read memory addr 0x%04x\n", addr);
   uint8_t val = 0;
   switch (addr) {
     case 0x2000 ... 0x3fff:
       addr = addr - 0x2000;
       switch (addr % 8) {
         case 0:
-          // PPUCTRL
           printf("PPUCTRL read");;
           val = ppu.controller;
           break;
         case 1:
-          // PPUMASK
           printf("PPUMASK read");;
           break;
         case 2:
-          // PPUSTATUS
           printf("PPUSTATUS read");;
           val = ppu.status;
           break;
         case 3:
-          // OAMADDR
           printf("OAMADDR read");;
           break;
         case 4:
-          // OAMDATA
-          // "stored value (of port 3) post-increments on access to port 4"
-          // "returns oam location indexed by port 3, then increments port 3"
           printf("OAMDATA read");;
           break;
         case 5:
-          // PPUSCROLL
           printf("PPUSCROLL read");;
           break;
         case 6:
-          // PPUADDR
           printf("PPUADDR read");;
           break;
         case 7:
-          // PPUDATA
           printf("PPUDATA read");;
           break;
       }
       break;
     case 0x4000 ... 0x4013:
-      // sound registers
       break;
     case 0x4014:
-      // OAMDMA, sprite memory
       break;
     case 0x4015:
-      // sound channel switch
       break;
     case 0x4016:
-      // joy 1 strobe
       break;
     case 0x4017:
-      // joy 2 strobe
       break;
     case 0x1800 ... 0x1fff:
       addr = addr - 0x800;
@@ -173,38 +146,21 @@ uint8_t CPU::read_mem(uint16_t addr) {
     case 0x0800 ... 0x0fff:
       addr = addr - 0x800;
     case 0x0000 ... 0x07ff:  // real 2kB
-      /*
-      {
-      uint8_t val = memory.read(addr);
-      printf("normal mem, val %#04x\n", val);
-      }
-      */
       val = memory.read(addr);
       break;
     case 0x8000 ... 0xbfff:
-      throw std::runtime_error("lower ROM bank not implemented");
+      addr = addr - 0x8000;
+      val = cartridge.rom[addr];
+      break;
     case 0xc000 ... 0xffff:
       addr = addr - 0xc000;
-      /*
-      {
-      uint8_t val = cartridge.rom[addr];
-      printf("upper bank of cartridge, val %#04x\n", val);
-      }
-      */
       val = cartridge.rom[addr];
       break;
     default:
-      /*
-      {
-      uint8_t val = memory.read(addr);
-      printf("default read, val %#04x\n", val);
-      }
-      */
       val = memory.read(addr);
       break;
   }
 
-  // std::cout << "read: " << std::hex << "0x" << val;
   return val;
 }
 
@@ -411,7 +367,34 @@ void CPU::execute() {
        break;
 
     case OP_NOP:
-       printf("nop!   ");
+    case OP_NOP_IMP_01:
+    case OP_NOP_IMP_02:
+    case OP_NOP_IMP_03:
+    case OP_NOP_IMP_04:
+    case OP_NOP_IMP_05:
+    case OP_NOP_IMP_06:
+    case OP_NOP_IMM_01:
+    case OP_NOP_IMM_02:
+    case OP_NOP_IMM_03:
+    case OP_NOP_IMM_04:
+    case OP_NOP_IMM_05:
+    case OP_NOP_ZP_01:
+    case OP_NOP_ZP_02:
+    case OP_NOP_ZP_03:
+    case OP_NOP_ZPX_01:
+    case OP_NOP_ZPX_02:
+    case OP_NOP_ZPX_03:
+    case OP_NOP_ZPX_04:
+    case OP_NOP_ZPX_05:
+    case OP_NOP_ZPX_06:
+    case OP_NOP_ABS:
+    case OP_NOP_ABX_01:
+    case OP_NOP_ABX_02:
+    case OP_NOP_ABX_03:
+    case OP_NOP_ABX_04:
+    case OP_NOP_ABX_05:
+    case OP_NOP_ABX_06:
+       op_nop(instruction);
        break;
 
     case OP_ORA_IMM:
@@ -535,8 +518,6 @@ void CPU::execute() {
        break;
 
     default:
-//      printf("Illegal instruction %#04x at addr %#04x\n", instruction,
- //         registers.PC - 1);
       {
       std::stringstream ss;
       ss << "Illegal instruction 0x" << std::hex << static_cast<int>(instruction)
@@ -553,47 +534,47 @@ void CPU::op_adc(uint8_t instruction) {
   uint16_t addr, zaddr;
   switch (instruction) {
     case OP_ADC_IMM:
-      // immediate
       val = read_mem(registers.PC++);
       break;
     case OP_ADC_ZP:
-      // zp
       addr = read_mem(registers.PC++);
       val = read_mem(addr);
       break;
     case OP_ADC_ZPX:
-      // zp,x
-      // TODO(liam): zp instructions should wrap
       addr = read_mem(registers.PC++) + registers.X;
+      addr = addr % 0x100;
       val = read_mem(addr);
       break;
     case OP_ADC_ABS:
-      // abs
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       val = read_mem(addr);
       break;
     case OP_ADC_ABSX:
-      // abs,x
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       val = read_mem(addr + registers.X);
       break;
     case OP_ADC_ABSY:
-      // abs,y
+      addr = read_mem(registers.PC++);
+      addr = addr | (read_mem(registers.PC++) << 8);
+      val = read_mem(addr + registers.Y);
       break;
     case OP_ADC_IZX:
-      // izx
       zaddr = read_mem(registers.PC++) + registers.X;
+      zaddr = zaddr % 0x100;
       addr = read_mem(zaddr);
-      addr = addr | (read_mem(zaddr + 1) << 8);
+      zaddr = (zaddr + 1) % 0x100;
+      addr = addr | (read_mem(zaddr) << 8);
       val = read_mem(addr);
       break;
     case OP_ADC_IZY:
-      // izy
-      zaddr = read_mem(registers.PC++) + registers.Y;
+      zaddr = read_mem(registers.PC++);
+      zaddr = zaddr % 0x100;
       addr = read_mem(zaddr);
-      addr = addr | (read_mem(zaddr + 1) << 8);
+      zaddr = (zaddr + 1) % 0x100;
+      addr = addr | (read_mem(zaddr) << 8);
+      addr = addr + registers.Y;
       val = read_mem(addr);
       break;
   }
@@ -601,7 +582,6 @@ void CPU::op_adc(uint8_t instruction) {
   if (registers.P & Flags::C)
     subtotal++;
 
-  // Flags
   if (subtotal > (subtotal & 0xff))
     registers.P |= Flags::C;
   else
@@ -635,49 +615,49 @@ void CPU::op_and(uint8_t instruction) {
   uint16_t addr, zaddr;
   switch (instruction) {
     case OP_AND_IMM:
-      // immediate
       val = read_mem(registers.PC++);
       break;
     case OP_AND_ZP:
-      // zp
       addr = read_mem(registers.PC++);
-      val = read_mem(addr);
-      break;
-    case OP_AND_ABS:
-      // zp,x
-      addr = read_mem(registers.PC++) + registers.X;
-      val = read_mem(addr);
-      break;
-    case OP_AND_ABSX:
-      // abs
-      addr = read_mem(registers.PC++);
-      addr = addr | (read_mem(registers.PC++) << 8);
       val = read_mem(addr);
       break;
     case OP_AND_ZPX:
-      // abs,x
+      addr = read_mem(registers.PC++) + registers.X;
+      addr = addr % 0x100;
+      val = read_mem(addr);
+      break;
+    case OP_AND_ABS:
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
-      val = read_mem(addr + registers.X);
+      val = read_mem(addr);
+      break;
+    case OP_AND_ABSX:
+      addr = read_mem(registers.PC++);
+      addr = addr | (read_mem(registers.PC++) << 8);
+      addr = addr + registers.X;
+      val = read_mem(addr);
       break;
     case OP_AND_ABSY:
-      // abs,y
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
-      val = read_mem(addr + registers.Y);
+      addr = addr + registers.Y;
+      val = read_mem(addr);
       break;
     case OP_AND_IZX:
-      // izx
       zaddr = read_mem(registers.PC++) + registers.X;
+      zaddr = zaddr % 0x100;
       addr = read_mem(zaddr);
-      addr = addr | (read_mem(zaddr + 1) << 8);
+      zaddr = (zaddr + 1) % 0x100;
+      addr = addr | (read_mem(zaddr) << 8);
       val = read_mem(addr);
       break;
     case OP_AND_IZY:
-      // izy
-      zaddr = read_mem(registers.PC++) + registers.Y;
+      zaddr = read_mem(registers.PC++);
+      zaddr = zaddr % 0x100;
       addr = read_mem(zaddr);
-      addr = addr | (read_mem(zaddr + 1) << 8);
+      zaddr = (zaddr + 1) % 0x100;
+      addr = addr | (read_mem(zaddr) << 8);
+      addr = addr + registers.Y;
       val = read_mem(addr);
       break;
   }
@@ -698,46 +678,52 @@ void CPU::op_asl(uint8_t instruction) {
   uint16_t addr;
   switch (instruction) {
     case OP_ASL_A:
-      // implicit A
       val = registers.A;
       break;
     case OP_ASL_ZP:
-      // zp
       addr = read_mem(registers.PC++);
       val = read_mem(addr);
       break;
     case OP_ASL_ZPX:
-      // zp,x
       addr = read_mem(registers.PC++) + registers.X;
+      addr = addr % 0x100;
       val = read_mem(addr);
       break;
     case OP_ASL_ABS:
-      // abs
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       val = read_mem(addr);
       break;
     case OP_ASL_ABSX:
-      // abs,x
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
-      val = read_mem(addr + registers.X);
+      addr = addr + registers.X;
+      val = read_mem(addr);
       break;
   }
 
-  uint16_t intermediate = val << 1;
-  if ((intermediate & 0xff00) != 0)
-    registers.P |= Flags::C;
-  val = intermediate;
-  if (val == 0)
-    registers.P |= Flags::Z;
-  if (val & 0x80)
-    registers.P |= Flags::N;
+  uint8_t result = val << 1;
 
-  if (instruction == 0x0A)
-    registers.A = val;
+  if (result == 0) {
+    registers.P |= Flags::Z;
+  } else {
+    registers.P &= ~Flags::Z;
+    if (val & (1 << 7))
+      registers.P |= Flags::C;
+    else
+      registers.P &= ~Flags::C;
+  }
+
+  if (result & 0x80)
+    registers.P |= Flags::N;
   else
-    write_mem(addr, val);
+    registers.P &= ~Flags::N;
+
+  if (instruction == OP_ASL_A) {
+    registers.A = result;
+  } else {
+    write_mem(addr, result);
+  }
 }
 
 void CPU::op_bcc() {
@@ -891,49 +877,47 @@ void CPU::op_cmp(uint8_t instruction) {
   uint16_t addr, zaddr;
   switch (instruction) {
     case OP_CMP_IMM:
-      // immediate
       val = read_mem(registers.PC++);
       break;
     case OP_CMP_ZP:
-      // zp
       addr = read_mem(registers.PC++);
       val = read_mem(addr);
       break;
     case OP_CMP_ZPX:
-      // zp,x
       addr = read_mem(registers.PC++) + registers.X;
+      addr = addr % 0x100;
       val = read_mem(addr);
       break;
     case OP_CMP_ABS:
-      // abs
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       val = read_mem(addr);
       break;
     case OP_CMP_ABSX:
-      // abs,x
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       val = read_mem(addr + registers.X);
       break;
     case OP_CMP_ABSY:
-      // abs,y
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       val = read_mem(addr + registers.Y);
       break;
     case OP_CMP_IZX:
-      // izx
       zaddr = read_mem(registers.PC++) + registers.X;
+      zaddr = zaddr % 0x100;
       addr = read_mem(zaddr);
-      addr = addr | (read_mem(zaddr + 1) << 8);
+      zaddr = (zaddr + 1) % 0x100;
+      addr = addr | (read_mem(zaddr) << 8);
       val = read_mem(addr);
       break;
     case OP_CMP_IZY:
-      // izy
-      zaddr = read_mem(registers.PC++) + registers.Y;
+      zaddr = read_mem(registers.PC++);
+      zaddr = zaddr % 0x100;
       addr = read_mem(zaddr);
-      addr = addr | (read_mem(zaddr + 1) << 8);
+      zaddr = (zaddr + 1) % 0x100;
+      addr = addr | (read_mem(zaddr) << 8);
+      addr = addr + registers.Y;
       val = read_mem(addr);
       break;
   }
@@ -961,16 +945,13 @@ void CPU::op_cpx(uint8_t instruction) {
   uint16_t addr;
   switch (instruction) {
     case OP_CPX_IMM:
-      // immediate
       val = read_mem(registers.PC++);
       break;
     case OP_CPX_ZP:
-      // zp
       addr = read_mem(registers.PC++);
       val = read_mem(addr);
       break;
     case OP_CPX_ABS:
-      // abs
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       val = read_mem(addr);
@@ -1000,16 +981,13 @@ void CPU::op_cpy(uint8_t instruction) {
   uint16_t addr;
   switch (instruction) {
     case OP_CPY_IMM:
-      // immediate
       val = read_mem(registers.PC++);
       break;
     case OP_CPY_ZP:
-      // zp
       addr = read_mem(registers.PC++);
       val = read_mem(addr);
       break;
     case OP_CPY_ABS:
-      // abs
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       val = read_mem(addr);
@@ -1038,20 +1016,17 @@ void CPU::op_dec(uint8_t instruction) {
   uint16_t addr;
   switch (instruction) {
     case OP_DEC_ZP:
-      // zp
       addr = read_mem(registers.PC++);
       break;
     case OP_DEC_ZPX:
-      // zp,x
       addr = read_mem(registers.PC++) + registers.X;
+      addr = addr % 0x100;
       break;
     case OP_DEC_ABS:
-      // abs
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       break;
     case OP_DEC_ABSX:
-      // abs,x
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       addr = addr + registers.X;
@@ -1109,51 +1084,49 @@ void CPU::op_eor(uint8_t instruction) {
   uint16_t addr, zaddr;
   switch (instruction) {
     case OP_EOR_IMM:
-      // immediate
       val = read_mem(registers.PC++);
       break;
     case OP_EOR_ZP:
-      // zp
       addr = read_mem(registers.PC++);
       val = read_mem(addr);
       break;
     case OP_EOR_ZPX:
-      // zp,x
       addr = read_mem(registers.PC++) + registers.X;
+      addr = addr % 0x100;
       val = read_mem(addr);
       break;
     case OP_EOR_ABS:
-      // abs
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       val = read_mem(addr);
       break;
     case OP_EOR_ABSX:
-      // abs,x
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       addr = addr + registers.X;
       val = read_mem(addr);
       break;
     case OP_EOR_ABSY:
-      // abs,y
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       addr = addr + registers.Y;
       val = read_mem(addr);
       break;
     case OP_EOR_IZX:
-      // izx
       zaddr = read_mem(registers.PC++) + registers.X;
+      zaddr = zaddr % 0x100;
       addr = read_mem(zaddr);
-      addr = addr | (read_mem(zaddr + 1) << 8);
+      zaddr = (zaddr + 1) % 0x100;
+      addr = addr | (read_mem(zaddr) << 8);
       val = read_mem(addr);
       break;
     case OP_EOR_IZY:
-      // izy
-      zaddr = read_mem(registers.PC++) + registers.Y;
+      zaddr = read_mem(registers.PC++);
+      zaddr = zaddr % 0x100;
       addr = read_mem(zaddr);
-      addr = addr | (read_mem(zaddr + 1) << 8);
+      zaddr = (zaddr + 1) % 0x100;
+      addr = addr | (read_mem(zaddr) << 8);
+      addr = addr + registers.Y;
       val = read_mem(addr);
       break;
   }
@@ -1177,21 +1150,18 @@ void CPU::op_inc(uint8_t instruction) {
   uint16_t addr;
   switch (instruction) {
     case OP_INC_ZP:
-      // zp
       addr = read_mem(registers.PC++);
       break;
     case OP_INC_ZPX:
-      // zp,x
       addr = read_mem(registers.PC++);
       addr = addr + registers.X;
+      addr = addr % 0x100;
       break;
     case OP_INC_ABS:
-      // abs
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       break;
     case OP_INC_ABSX:
-      // abs,x
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       addr = addr + registers.X;
@@ -1204,7 +1174,7 @@ void CPU::op_inc(uint8_t instruction) {
   if (val == 0)
     registers.P |= Flags::Z;
   else
-    registers.P &= ~Flags::Z;  // ??
+    registers.P &= ~Flags::Z;
 
   if (val & 0x80)
     registers.P |= Flags::N;
@@ -1223,7 +1193,7 @@ void CPU::op_inx() {
   if (val == 0)
     registers.P |= Flags::Z;
   else
-    registers.P &= ~Flags::Z;  // ??
+    registers.P &= ~Flags::Z;
 
   if (val & 0x80)
     registers.P |= Flags::N;
@@ -1242,7 +1212,7 @@ void CPU::op_iny() {
   if (val == 0)
     registers.P |= Flags::Z;
   else
-    registers.P &= ~Flags::Z;  // ??
+    registers.P &= ~Flags::Z;
 
   if (val & 0x80)
     registers.P |= Flags::N;
@@ -1263,7 +1233,12 @@ void CPU::op_jmp(uint8_t instruction) {
     case OP_JMP_IND:
       indirect = read_mem(registers.PC++);
       indirect = indirect | (read_mem(registers.PC++) << 8);
-      dest = read_mem(indirect++);
+      dest = read_mem(indirect);
+      // todo: make elegant
+      if ((indirect & 0x00ff) == 0x00ff)
+        indirect = indirect & 0xff00;
+      else
+        indirect = indirect + 1;
       dest = dest | (read_mem(indirect) << 8);
       break;
   }
@@ -1289,49 +1264,49 @@ void CPU::op_lda(uint8_t instruction) {
   uint16_t addr, zaddr;
   switch (instruction) {
     case OP_LDA_IMM:
-      // immediate
       val = read_mem(registers.PC++);
       break;
     case OP_LDA_ZP:
-      // zp
       addr = read_mem(registers.PC++);
       val = read_mem(addr);
       break;
     case OP_LDA_ZPX:
-      // zp,x
       addr = read_mem(registers.PC++) + registers.X;
+      addr = addr % 0x100;
       val = read_mem(addr);
       break;
     case OP_LDA_ABS:
-      // abs
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       val = read_mem(addr);
       break;
     case OP_LDA_ABSX:
-      // abs,x
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
-      val = read_mem(addr + registers.X);
+      addr = addr + registers.X;
+      val = read_mem(addr);
+      // printf("\n\nfound %02x at %04x\n", val, addr);
       break;
     case OP_LDA_ABSY:
-      // abs,y
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       val = read_mem(addr + registers.Y);
       break;
     case OP_LDA_IZX:
-      // izx
       zaddr = read_mem(registers.PC++) + registers.X;
+      zaddr = zaddr % 0x100;
       addr = read_mem(zaddr);
-      addr = addr | (read_mem(zaddr + 1) << 8);
+      zaddr = (zaddr + 1) % 0x100;
+      addr = addr | (read_mem(zaddr) << 8);
       val = read_mem(addr);
       break;
     case OP_LDA_IZY:
-      // izy
-      zaddr = read_mem(registers.PC++) + registers.Y;
+      zaddr = read_mem(registers.PC++);
+      zaddr = zaddr % 0x100;
       addr = read_mem(zaddr);
-      addr = addr | (read_mem(zaddr + 1) << 8);
+      zaddr = (zaddr + 1) % 0x100;
+      addr = addr | (read_mem(zaddr) << 8);
+      addr = addr + registers.Y;
       val = read_mem(addr);
       break;
   }
@@ -1355,27 +1330,23 @@ void CPU::op_ldx(uint8_t instruction) {
   uint16_t addr;
   switch (instruction) {
     case OP_LDX_IMM:
-      // immediate
       val = read_mem(registers.PC++);
       break;
     case OP_LDX_ZP:
-      // zp
       addr = read_mem(registers.PC++);
       val = read_mem(addr);
       break;
     case OP_LDX_ZPY:
-      // zp,y
       addr = read_mem(registers.PC++) + registers.Y;
+      addr = addr % 0x100;
       val = read_mem(addr);
       break;
     case OP_LDX_ABS:
-      // abs
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       val = read_mem(addr);
       break;
     case OP_LDX_ABSY:
-      // abs,y
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       val = read_mem(addr + registers.Y);
@@ -1401,27 +1372,23 @@ void CPU::op_ldy(uint8_t instruction) {
   uint16_t addr;
   switch (instruction) {
     case OP_LDY_IMM:
-      // immediate
       val = read_mem(registers.PC++);
       break;
     case OP_LDY_ZP:
-      // zp
       addr = read_mem(registers.PC++);
       val = read_mem(addr);
       break;
     case OP_LDY_ZPX:
-      // zp,x
       addr = read_mem(registers.PC++) + registers.X;
+      addr = addr % 0x100;
       val = read_mem(addr);
       break;
     case OP_LDY_ABS:
-      // abs
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       val = read_mem(addr);
       break;
     case OP_LDY_ABSX:
-      // abs,x
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       val = read_mem(addr + registers.X);
@@ -1455,6 +1422,7 @@ void CPU::op_lsr(uint8_t instruction) {
       break;
     case OP_LSR_ZPX:
       addr = read_mem(registers.PC++) + registers.X;
+      addr = addr % 0x100;
       val = read_mem(addr);
       break;
     case OP_LSR_ABS:
@@ -1470,18 +1438,18 @@ void CPU::op_lsr(uint8_t instruction) {
       break;
   }
 
-  uint16_t intermediate = val >> 1;
-  if ((intermediate & 0xff00) != 0)
+  if (val & 0x1)
     registers.P |= Flags::C;
   else
     registers.P &= ~Flags::C;
 
-  val = intermediate;
+  val = val >> 1;
 
-  if (val == 0)
+  if (val == 0) {
     registers.P |= Flags::Z;
-  else
+  } else {
     registers.P &= ~Flags::Z;
+  }
 
   registers.P &= ~Flags::N;
 
@@ -1491,7 +1459,45 @@ void CPU::op_lsr(uint8_t instruction) {
     write_mem(addr, val);
 }
 
-// void CPU::op_nop() { }
+void CPU::op_nop(uint8_t instruction) {
+  std::cout << "op_nop ";
+  switch (instruction) {
+    case OP_NOP_IMP_01:
+    case OP_NOP_IMP_02:
+    case OP_NOP_IMP_03:
+    case OP_NOP_IMP_04:
+    case OP_NOP_IMP_05:
+    case OP_NOP_IMP_06:
+      // no additional bytes
+      break;
+    case OP_NOP_ABS:
+    case OP_NOP_ABX_01:
+    case OP_NOP_ABX_02:
+    case OP_NOP_ABX_03:
+    case OP_NOP_ABX_04:
+    case OP_NOP_ABX_05:
+    case OP_NOP_ABX_06:
+      // two bytes for above
+      registers.PC++;  // no break!
+    case OP_NOP_IMM_01:
+    case OP_NOP_IMM_02:
+    case OP_NOP_IMM_03:
+    case OP_NOP_IMM_04:
+    case OP_NOP_IMM_05:
+    case OP_NOP_ZP_01:
+    case OP_NOP_ZP_02:
+    case OP_NOP_ZP_03:
+    case OP_NOP_ZPX_01:
+    case OP_NOP_ZPX_02:
+    case OP_NOP_ZPX_03:
+    case OP_NOP_ZPX_04:
+    case OP_NOP_ZPX_05:
+    case OP_NOP_ZPX_06:
+      // one byte for above
+      registers.PC++;
+      break;
+  }
+}
 
 void CPU::op_ora(uint8_t instruction) {
   std::cout << "op_ora ";
@@ -1499,49 +1505,47 @@ void CPU::op_ora(uint8_t instruction) {
   uint16_t addr, zaddr;
   switch (instruction) {
     case OP_ORA_IMM:
-      // immediate
       val = read_mem(registers.PC++);
       break;
     case OP_ORA_ZP:
-      // zp
       addr = read_mem(registers.PC++);
       val = read_mem(addr);
       break;
     case OP_ORA_ZPX:
-      // zp,x
       addr = read_mem(registers.PC++) + registers.X;
+      addr = addr % 0x100;
       val = read_mem(addr);
       break;
     case OP_ORA_ABS:
-      // abs
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       val = read_mem(addr);
       break;
     case OP_ORA_ABSX:
-      // abs,x
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       val = read_mem(addr + registers.X);
       break;
     case OP_ORA_ABSY:
-      // abs,y
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       val = read_mem(addr + registers.Y);
       break;
     case OP_ORA_IZX:
-      // izx
       zaddr = read_mem(registers.PC++) + registers.X;
+      zaddr = zaddr % 0x100;
       addr = read_mem(zaddr);
-      addr = addr | (read_mem(zaddr + 1) << 8);
+      zaddr = (zaddr + 1) % 0x100;
+      addr = addr | (read_mem(zaddr) << 8);
       val = read_mem(addr);
       break;
     case OP_ORA_IZY:
-      // izy
-      zaddr = read_mem(registers.PC++) + registers.Y;
+      zaddr = read_mem(registers.PC++);
+      zaddr = zaddr % 0x100;
       addr = read_mem(zaddr);
-      addr = addr | (read_mem(zaddr + 1) << 8);
+      zaddr = (zaddr + 1) % 0x100;
+      addr = addr | (read_mem(zaddr) << 8);
+      addr = addr + registers.Y;
       val = read_mem(addr);
       break;
   }
@@ -1610,6 +1614,7 @@ void CPU::op_rol(uint8_t instruction) {
     case OP_ROL_ZPX:
       addr = read_mem(registers.PC++);
       addr = addr + registers.X;
+      addr = addr % 0x100;
       val = read_mem(addr);
       break;
     case OP_ROL_ABS:
@@ -1660,6 +1665,7 @@ void CPU::op_ror(uint8_t instruction) {
     case OP_ROR_ZPX:
       addr = read_mem(registers.PC++);
       addr = addr + registers.X;
+      addr = addr % 0x100;
       val = read_mem(addr);
       break;
     case OP_ROR_ABS:
@@ -1675,26 +1681,29 @@ void CPU::op_ror(uint8_t instruction) {
       break;
   }
 
-  val = val >> 1;
+  uint8_t result = val >> 1;
   if (registers.P & Flags::C)
-    val = val | (1 << 7);
+    result = result | (1 << 7);
 
-  // TODO(liam): should modify C
+  if (val & 0x1)
+    registers.P |= Flags::C;
+  else
+    registers.P &= ~Flags::C;
 
-  if (val == 0)
+  if (result == 0)
     registers.P |= Flags::Z;
   else
     registers.P &= ~Flags::Z;
 
-  if (val & 0x80)
+  if (result & 0x80)
     registers.P |= Flags::N;
   else
     registers.P &= ~Flags::N;
 
-  if (instruction == OP_ROL_A)
-    registers.A = val;
+  if (instruction == OP_ROR_A)
+    registers.A = result;
   else
-    write_mem(addr, val);
+    write_mem(addr, result);
 }
 
 void CPU::op_rti() {
@@ -1704,6 +1713,7 @@ void CPU::op_rti() {
 
   sr = read_mem(0x100 + ++registers.S);
   registers.P = sr;
+  registers.P |= Flags::E;
 
   pc = read_mem(0x100 + ++registers.S);
   pc = pc | (read_mem(0x100 + ++registers.S) << 8);
@@ -1734,6 +1744,7 @@ void CPU::op_sbc(uint8_t instruction) {
     case OP_SBC_ZPX:
       addr = read_mem(registers.PC++);
       addr = addr + registers.X;
+      addr = addr % 0x100;
       val = read_mem(addr);
       break;
     case OP_SBC_ABS:
@@ -1754,17 +1765,20 @@ void CPU::op_sbc(uint8_t instruction) {
       val = read_mem(addr);
       break;
     case OP_SBC_IZX:
-      zaddr = read_mem(registers.PC++);
-      zaddr = zaddr + registers.X;
+      zaddr = read_mem(registers.PC++) + registers.X;
+      zaddr = zaddr % 0x100;
       addr = read_mem(zaddr);
-      addr = addr | (read_mem(zaddr + 1) << 8);
+      zaddr = (zaddr + 1) % 0x100;
+      addr = addr | (read_mem(zaddr) << 8);
       val = read_mem(addr);
       break;
     case OP_SBC_IZY:
       zaddr = read_mem(registers.PC++);
-      zaddr = zaddr + registers.X;
+      zaddr = zaddr % 0x100;
       addr = read_mem(zaddr);
-      addr = addr | (read_mem(zaddr + 1) << 8);
+      zaddr = (zaddr + 1) % 0x100;
+      addr = addr | (read_mem(zaddr) << 8);
+      addr = addr + registers.Y;
       val = read_mem(addr);
       break;
   }
@@ -1773,7 +1787,6 @@ void CPU::op_sbc(uint8_t instruction) {
   if (registers.P & Flags::C)
     subtotal++;
 
-  // Flags
   if (subtotal > (subtotal & 0xff))
     registers.P |= Flags::C;
   else
@@ -1820,41 +1833,41 @@ void CPU::op_sta(uint8_t instruction) {
   uint16_t addr, zaddr;
   switch (instruction) {
     case OP_STA_ZP:
-      // zp
       addr = read_mem(registers.PC++);
       break;
     case OP_STA_ZPX:
-      // zp,x
       addr = read_mem(registers.PC++) + registers.X;
+      addr = addr % 0x100;
       break;
     case OP_STA_ABS:
-      // abs
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
+      // printf("\n\nwrite %02x to %04x\n", registers.A, addr);
       break;
     case OP_STA_ABSX:
-      // abs,x
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       addr = addr + registers.X;
       break;
     case OP_STA_ABSY:
-      // abs,y
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       addr = addr + registers.Y;
       break;
     case OP_STA_IZX:
-      // izx
       zaddr = read_mem(registers.PC++) + registers.X;
+      zaddr = zaddr % 0x100;
       addr = read_mem(zaddr);
-      addr = addr | (read_mem(zaddr + 1) << 8);
+      zaddr = (zaddr + 1) % 0x100;
+      addr = addr | (read_mem(zaddr) << 8);
       break;
     case OP_STA_IZY:
-      // izy
-      zaddr = read_mem(registers.PC++) + registers.Y;
+      zaddr = read_mem(registers.PC++);
+      zaddr = zaddr % 0x100;
       addr = read_mem(zaddr);
-      addr = addr | (read_mem(zaddr + 1) << 8);
+      zaddr = (zaddr + 1) % 0x100;
+      addr = addr | (read_mem(zaddr) << 8);
+      addr = addr + registers.Y;
       break;
   }
   write_mem(addr, registers.A);
@@ -1865,15 +1878,13 @@ void CPU::op_stx(uint8_t instruction) {
   uint16_t addr;
   switch (instruction) {
     case OP_STX_ZP:
-      // zp
       addr = read_mem(registers.PC++);
       break;
     case OP_STX_ZPY:
-      // zp,y
       addr = read_mem(registers.PC++) + registers.Y;
+      addr = addr % 0x100;
       break;
     case OP_STX_ABS:
-      // abs
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       break;
@@ -1886,15 +1897,13 @@ void CPU::op_sty(uint8_t instruction) {
   uint16_t addr;
   switch (instruction) {
     case OP_STY_ZP:
-      // zp
       addr = read_mem(registers.PC++);
       break;
     case OP_STY_ZPX:
-      // zp,x
       addr = read_mem(registers.PC++) + registers.X;
+      addr = addr % 0x100;
       break;
     case OP_STY_ABS:
-      // abs
       addr = read_mem(registers.PC++);
       addr = addr | (read_mem(registers.PC++) << 8);
       break;

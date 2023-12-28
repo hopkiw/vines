@@ -102,6 +102,34 @@
 #define  OP_LSR_ABS    0x4E
 #define  OP_LSR_ABSX   0x5E
 #define  OP_NOP        0xEA
+// "illegal" NOP codes
+#define  OP_NOP_IMP_01 0x1A
+#define  OP_NOP_IMP_02 0x3A
+#define  OP_NOP_IMP_03 0x5A
+#define  OP_NOP_IMP_04 0x7A
+#define  OP_NOP_IMP_05 0xDA
+#define  OP_NOP_IMP_06 0xFA
+#define  OP_NOP_IMM_01 0x80
+#define  OP_NOP_IMM_02 0x82
+#define  OP_NOP_IMM_03 0x89
+#define  OP_NOP_IMM_04 0xC2
+#define  OP_NOP_IMM_05 0xE2
+#define  OP_NOP_ZP_01  0x04
+#define  OP_NOP_ZP_02  0x44
+#define  OP_NOP_ZP_03  0x64
+#define  OP_NOP_ZPX_01 0x14
+#define  OP_NOP_ZPX_02 0x34
+#define  OP_NOP_ZPX_03 0x54
+#define  OP_NOP_ZPX_04 0x74
+#define  OP_NOP_ZPX_05 0xD4
+#define  OP_NOP_ZPX_06 0xF4
+#define  OP_NOP_ABS    0x0C
+#define  OP_NOP_ABX_01 0x1C
+#define  OP_NOP_ABX_02 0x3C
+#define  OP_NOP_ABX_03 0x5C
+#define  OP_NOP_ABX_04 0x7C
+#define  OP_NOP_ABX_05 0xDC
+#define  OP_NOP_ABX_06 0xFC
 #define  OP_ORA_IMM    0x09
 #define  OP_ORA_ZP     0x05
 #define  OP_ORA_ZPX    0x15
@@ -290,7 +318,7 @@ class CPU {
     void op_ldx(uint8_t);
     void op_ldy(uint8_t);
     void op_lsr(uint8_t);
-    void op_nop();
+    void op_nop(uint8_t);
     void op_ora(uint8_t);
     void op_pha();
     void op_php();
